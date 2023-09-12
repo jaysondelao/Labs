@@ -14,12 +14,15 @@ library(devtools)
 ```
 
 Code to download dataset
+```{r}
 download.file(
   "https://raw.githubusercontent.com/USCbiostats/data-science-data/master/02_met/met_all.gz",
   destfile = file.path("~", "Downloads", "met_all.gz"),
   method   = "libcurl",
   timeout  = 60
 )
+```
+
 ```{r}
 met <- data.table::fread(file.path("~", "Downloads", "met_all.gz"))
 ```
