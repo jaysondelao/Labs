@@ -11,6 +11,7 @@ format:
 library(dplyr)
 library(leaflet)
 library(devtools)
+library(R.utils)
 ```
 
 Code to download dataset
