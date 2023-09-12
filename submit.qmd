@@ -1,28 +1,134 @@
 ---
-title: ""
-author: ""
+title: "Lab3"
+author: "Jayson De La O"
 format:
   html:
     embed-resources: true
 ---
 
 ## Quarto
-
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
 ```{r}
-1 + 1
+library(dplyr)
+library(leaflet)
+library(devtools)
 ```
 
-You can add options to executable code like this
-
+Code to download dataset
+download.file(
+  "https://raw.githubusercontent.com/USCbiostats/data-science-data/master/02_met/met_all.gz",
+  destfile = file.path("~", "Downloads", "met_all.gz"),
+  method   = "libcurl",
+  timeout  = 60
+)
 ```{r}
-#| echo: false
-2 * 2
+met <- data.table::fread(file.path("~", "Downloads", "met_all.gz"))
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+```{r}
+dim(met)
+head(met)
+tail(met)
+```
+
+```{r}
+str(met)
+table(met$year)
+table(met$day)
+table(met$hour)
+```
+
+```{r}
+summary(met$temp)
+summary(met$elev)
+summary(met$wind.sp)
+```
+
+```{r}
+met[met$elev==9999.0] <- NA
+summary(met$elev)
+```
+
+```{r}
+met <- met[temp>-40]
+met2 <- met[order(temp)]
+head(met2)
+```
+Temps higher than -40
+
+```{r}
+summary(met$temp)
+```
+temps higher than -17
+```{r}
+met <- met[temp>-15]
+met2 <- met[order(temp)]
+head(met2)
+summary(met$temp)
+```
+
+
+
+```{r}
+elev <- met[elev==max(elev), ]
+summary(elev)
+```
+
+
+```{r}
+cor(elev$temp, elev$wind.sp, use="complete")
+cor(elev$temp, elev$hour, use="complete")
+cor(elev$wind.sp, elev$day, use="complete")
+cor(elev$wind.sp, elev$hour, use="complete")
+cor(elev$temp, elev$day, use="complete")
+```
+
+
+
+```{r}
+hist(met$elev, breaks=100)
+hist(met$temp)
+hist(met$wind.sp)
+```
+
+
+
+```{r}
+leaflet(elev) %>%
+  addProviderTiles('OpenStreetMap') %>% 
+  addCircles(lat=~lat,lng=~lon, opacity=1, fillOpacity=1, radius=100)
+```
+
+```{r}
+library(lubridate)
+elev$date <- with(elev, ymd_h(paste(year, month, day, hour, sep= ' ')))
+summary(elev$date)
+```
+
+```{r}
+elev <- elev[order(date)]
+head(elev)
+```
+
+```{r}
+plot(elev$date, elev$temp, type='l')
+```
+
+```{r}
+plot(elev$date, elev$wind.sp, type='l')
+```
+
+Trends in the time series plots: There are rapid increases and decreases in both plots which seems reasonable because temperatures rise throughout the day and cool during the night. The winds are always increasing which we would expect for a place with a high elevation.
+
+Visualizing the distributions of temperatures and elevations
+```{r}
+barplot(table(met$temp))
+barplot(table(met$elev))
+
+hist(met$atm.press)
+```
+
+```{r}
+plot(met$elev ~ met$atm.press)
+```
+
+I would have expected the highest pressure to be at the highest elevation, but that does not seem to be the case.
